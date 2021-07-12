@@ -4,8 +4,6 @@ import { Pane, Panes } from './Panes';
 import { Chats } from './Chats';
 import { MessageForm } from './MessageForm';
 
-//blanlaa
-
 const MY_USER_ID = '60bfaf01d6c5f547fc147cca';
 let get = (route) => fetch(`http://localhost:8080/api/${route}`).then(res => res.json())
 
