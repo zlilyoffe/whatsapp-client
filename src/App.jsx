@@ -5,8 +5,10 @@ import { Chats } from './Chats';
 import { MessageForm } from './MessageForm';
 
 const MY_USER_ID = '60bfaf01d6c5f547fc147cca';
-let get = (route) => fetch(`http://localhost:8080/api/${route}`).then(res => res.json())
-// zlil comment
+let get = (route) => fetch(`http://localhost:8080/api/${route}`, {
+  credentials:'include',
+  mode: 'cors'
+}).then(res => res.json())
 
 export function App() {
     let [chats, setChats] = useState([]);
@@ -64,7 +66,7 @@ export function App() {
   }
 
   function loadMyUser() {
-    get(`users/${MY_USER_ID}`)
+    get('me')
     .then(user => {
       setMyUser(user);
     });
