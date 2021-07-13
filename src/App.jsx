@@ -3,10 +3,12 @@ import { Messages } from './Messages';
 import { Pane, Panes } from './Panes';
 import { Chats } from './Chats';
 import { MessageForm } from './MessageForm';
+import { getChatUsersList } from './utils';
+
 
 // const MY_USER_ID = '60bfaf01d6c5f547fc147cca';
 let get = (route) => fetch(`http://localhost:8080/api/${route}`, {
-  credentials:'include',
+  credentials: 'include',
   mode: 'cors'
 }).then(res => res.json())
 
@@ -27,13 +29,16 @@ export function App() {
     useEffect(loadMyUser, []);
     useEffect(loadMyFriends, [myUser?._id]);
     useEffect(updateUsersContext, [myUser, friends]);
-    useEffect(loadChats, []);
+    useEffect(loadChats, [myUser?._id]);
     // useEffect(loadAllUsers, []);
     useEffect(loadMessages, [chatId, lastPoll]);
-    // useEffect(startTimer, [lastPoll]);
+    useEffect(startTimer, [lastPoll]);
 
     let selectedChat = chats.find((chat) => chat._id === chatId);
-
+    let lastPollDisplay = (() => {
+      let now = new Date(lastPoll);
+      return `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+    })();
     function loadAllUsers() {
       // GET request using fetch inside useEffect React hook
       fetch('http://localhost:8080/api/users')
@@ -50,7 +55,7 @@ export function App() {
       </Pane>
       <Pane width={'65%'}
         // header={`${selectedChat?.users.map(user => user.name).join(', ')} (${selectedChat?.id})`}
-        header={`Chat (${selectedChat?._id}): ${getChatUsersList(selectedChat)}`}
+        header={`Chat: ${getChatUsersList(selectedChat, usersContext)}`}
         body={<Messages messages={messages} usersContext={usersContext}></Messages>}
         footer={<MessageForm onNewMessage={onNewMessage}></MessageForm>}
         lastScroll={lastPoll}>
@@ -58,12 +63,12 @@ export function App() {
   </Panes>;
 
 
-  function getChatUsersList(chat) {
-    return chat?.userIds.map(user => {
-      let fullUser = usersContext.allUsers[user._id] || {};
-      return fullUser.userName;
-    }).join(', ');
-  }
+  // function getChatUsersList(chat) {
+  //   return chat?.userIds.map(user => {
+  //     let fullUser = usersContext.allUsers[user._id] || {};
+  //     return fullUser.userName;
+  //   }).join(', ');
+  // }
 
   function loadMyUser() {
     get('me')
@@ -97,7 +102,10 @@ export function App() {
     }
 
     function loadChats() {
-      get('chats').then(chats => {
+      if (!myUser._id) {
+        return;
+      }
+      get(`chats?userid=${myUser._id}`).then(chats => {
         setChats(chats);
         setChatId(chats[0]._id);
       });
@@ -112,13 +120,13 @@ export function App() {
           setMessages(messages);
         })
     }
-  //   function startTimer() {
-  //     clearTimeout(timer.current);
-  //     timer.current = setTimeout(() => {
-  //       setLastPoll(Date.now());
-  //     }, 5000);
-  //   }
-  // }
+    function startTimer() {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        setLastPoll(Date.now());
+      }, 5000);
+    }
+  
 
   function updateUsersContext() {
     let newUsersContext = {
