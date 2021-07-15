@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components/macro';
+import backg from './img/backg.png';
+
 
 export let Panes = styled.main({
   display: 'flex',
   width: '100vw',
   height: '100vh',
-  backgroundColor: '#F8F8F8'
+  backgroundImage:`url(${backg})`
 });
 
 let Header = styled.header({
