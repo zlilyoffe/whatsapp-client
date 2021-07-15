@@ -4,18 +4,21 @@ import { Pane, Panes } from './Panes';
 import { Chats } from './Chats';
 import { MessageForm } from './MessageForm';
 import { getChatUsersList } from './utils';
+import { FindUsers } from './FindUsers';
+import { get, post } from './utils';
 
 
+//https://whatsapp-server-zlilyoffe.herokuapp.com
 // const MY_USER_ID = '60bfaf01d6c5f547fc147cca';
-let get = (route) => fetch(`http://localhost:8080/api/${route}`, {
-  credentials: 'include',
-  mode: 'cors'
-}).then(res => res.json())
+// let get = (route) => fetch(`http://localhost:8080/api/${route}`, {
+//   credentials: 'include',
+//   mode: 'cors'
+// }).then(res => res.json())
 
 export function App() {
     let [chats, setChats] = useState([]);
     let [chatId, setChatId] = useState(null);
-    //let [selectedId, setSelectedId] = useState(null);
+    let [newChatId, setNewChatId] = useState(null);
     let [messages, setMessages] = useState([]);
     let [lastPoll, setLastPoll] = useState(Date.now());
     let [myUser, setMyUser] = useState({});
@@ -25,36 +28,35 @@ export function App() {
       allUsers: {}
     });
     let timer = useRef(null);
+    let lastChatId = useRef(null);
 
     useEffect(loadMyUser, []);
     useEffect(loadMyFriends, [myUser?._id]);
     useEffect(updateUsersContext, [myUser, friends]);
-    useEffect(loadChats, [myUser?._id]);
+    // useEffect(loadChats, [myUser?._id]);
     // useEffect(loadAllUsers, []);
+    useEffect(loadChats, [myUser?._id, newChatId, lastPoll]);
     useEffect(loadMessages, [chatId, lastPoll]);
     useEffect(startTimer, [lastPoll]);
+    useEffect(saveLastChatId, [chatId]);
 
     let selectedChat = chats.find((chat) => chat._id === chatId);
     let lastPollDisplay = (() => {
       let now = new Date(lastPoll);
       return `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
     })();
-    function loadAllUsers() {
-      // GET request using fetch inside useEffect React hook
-      fetch('http://localhost:8080/api/users')
-          .then((response) => response.json())
-          .then((users) => console.log(users))
-          .catch((err) => console.log("eror" + err));
-    };
+
 
     return <Panes>
       <Pane width={'35%'} minWidth={'300px'}
-        // header={`All Chats (lastPoll: ${lastPoll})`}
-        header={`User: ${myUser.userName} (${myUser._id}) (lastPoll: ${lastPoll})`}
-        body={<Chats chats={chats} onSelectChat={setChatId}></Chats>}>
+        header={`User: ${myUser.userName} (lastPoll: ${lastPollDisplay})`}
+        body={<>
+          <FindUsers onFoundUserClick={onFoundUserClick}></FindUsers>
+          Chats:
+        <Chats chats={chats} onSelectChat={setChatId} usersContext={usersContext}></Chats>
+        </>}>
       </Pane>
       <Pane width={'65%'}
-        // header={`${selectedChat?.users.map(user => user.name).join(', ')} (${selectedChat?.id})`}
         header={`Chat: ${getChatUsersList(selectedChat, usersContext)}`}
         body={<Messages messages={messages} usersContext={usersContext}></Messages>}
         footer={<MessageForm onNewMessage={onNewMessage}></MessageForm>}
@@ -62,13 +64,6 @@ export function App() {
       </Pane>
   </Panes>;
 
-
-  // function getChatUsersList(chat) {
-  //   return chat?.userIds.map(user => {
-  //     let fullUser = usersContext.allUsers[user._id] || {};
-  //     return fullUser.userName;
-  //   }).join(', ');
-  // }
 
   function loadMyUser() {
     get('me')
@@ -88,16 +83,38 @@ export function App() {
         });
     }
 
-    function onNewMessage(body) {
-      fetch(`/post/chats/${chatId}/messages`)
-      .then(res => {
-          let newMessage = {
-            chatId,
-            body,
-            user: {name: 'zlil yoffe'},
-          };
-          console.log(`sending: ${JSON.stringify(newMessage)}`);
+    function onNewMessage(text) {
+      let newMessage = {
+        chat: chatId, // TODO rename to chatId
+        text,
+        date: String(new Date()), // TODO should be timestamp
+        picURL: '',
+        author: myUser, // TODO should only send userId
+      };
+      post(`chats/${chatId}/messages`, newMessage)
+        .then(res => {
+          console.log(`Server responded with: ${JSON.stringify(res)}`);
           setLastPoll(Date.now());
+        });
+    }
+
+    // function onNewMessage(text) {
+    //   fetch(`/post/chats/${chatId}/messages`)
+    //   .then(res => {
+    //       let newMessage = {
+    //         chatId,
+    //         text,
+    //         user: {name: 'zlil yoffe'},
+    //       };
+    //       console.log(`sending: ${JSON.stringify(newMessage)}`);
+    //       setLastPoll(Date.now());
+    //     });
+    // }
+
+    function onFoundUserClick(foundUserId) {
+      post('chats', {userIds: [myUser._id, foundUserId]})
+        .then(newChat => {
+          setNewChatId(newChat._id);
         });
     }
 
@@ -107,7 +124,11 @@ export function App() {
       }
       get(`chats?userid=${myUser._id}`).then(chats => {
         setChats(chats);
-        setChatId(chats[0]._id);
+        if (!chats.length) {
+          return;
+        }
+        let defaultChat = lastChatId.current || chats[0]._id;
+        setChatId(defaultChat)
       });
     }
 
@@ -120,11 +141,16 @@ export function App() {
           setMessages(messages);
         })
     }
+    
     function startTimer() {
       clearTimeout(timer.current);
       timer.current = setTimeout(() => {
         setLastPoll(Date.now());
       }, 5000);
+    }
+
+    function saveLastChatId() {
+      lastChatId.current = chatId;
     }
   
 
