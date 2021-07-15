@@ -11,7 +11,7 @@ export let Panes = styled.main({
 });
 
 let Header = styled.header({
-  backgroundColor: 'lavenderblush ',
+  backgroundColor: 'skyblue ',
   padding: '1em'
 });
 
@@ -44,3 +44,5 @@ export function Pane({width, minWidth, header, body, footer, lastScroll}) {
     {footer && <Footer>{footer}</Footer>}
   </Container>
 }
+
+// {footer && <Footer>{footer} {<button>boom</button>}</Footer>}
