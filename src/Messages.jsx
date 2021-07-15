@@ -3,7 +3,7 @@ import styled from 'styled-components/macro';
 
 let Message = styled.div({
         border: '1px solid',
-        padding: '0.5em'
+        padding: '0.5em',
 });
 
 export function Messages(props) {
