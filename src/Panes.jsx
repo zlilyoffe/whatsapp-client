@@ -1,18 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components/macro';
-import backg from './img/backg.png';
+// import backg from './img/backg.png';
 
 
 export let Panes = styled.main({
   display: 'flex',
   width: '100vw',
   height: '100vh',
-  backgroundImage:`url(${backg})`
+  backgroundColor: 'snow'
+  // backgroundImage:`url(${backg})`
 });
 
 let Header = styled.header({
-  backgroundColor: 'skyblue ',
-  padding: '1em'
+  backgroundColor: 'mediumturquoise',
+  padding: '1em',
+  fontFamily: 'fantasy',
+  fontSize: '1.2em',
+  color: 'white'
 });
 
 let Body = styled.div({
@@ -27,7 +31,6 @@ let Container = styled.div(props => ({
 
 let Footer = styled.div({
   paddingLeft: '2.4em',
-  width: '100vw'
 });
 
 export function Pane({width, minWidth, header, body, footer, lastScroll}) {

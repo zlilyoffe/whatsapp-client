@@ -5,7 +5,10 @@ import { get } from './utils';
 export function FindUsers({onFoundUserClick}) {
   let [foundUsers, setFoundUsers] = useState([]);
 
-  return <div style={{marginBottom: '2em', borderBottom: '1px solid'}}>
+  return <div style={{marginBottom: '2em', borderBottom: '1px solid mediumturquoise', color: 'mediumturquoise',
+
+  borderRadius: '5px', marginTop: '1em',
+}}>
   <input onChange={(e) => {
     get(`users?search=${e.target.value}`)
       .then(users => {

@@ -49,7 +49,7 @@ export function App() {
 
     return <Panes>
       <Pane width={'35%'} minWidth={'300px'}
-        header={`User: ${myUser.userName} (lastPoll: ${lastPollDisplay})`}
+        header={`User: ${myUser.userName}  | ${lastPollDisplay}`}
         body={<>
           <FindUsers onFoundUserClick={onFoundUserClick}></FindUsers>
           Chats:
